@@ -55,4 +55,4 @@ class ThermalShape(Shape):
 
 @attr.s
 class ContourShape(Shape):
-    contours: list[Shape] = attr.ib(validator=attr.validators.instance_of(list[Shape]), default=[])
+    contours: list[Shape] = attr.ib(default=[])

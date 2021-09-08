@@ -1,60 +1,63 @@
 import unittest
 
-from raw_command import D02Command
+from raw_command import D02Command, G36Command, G37Command, M02Command, AMFloat, AMAdd, AMVar, G75Command, G03Command, \
+    G02Command, G01Command, DnnCommand
 from rs274x_parser import Rs274xParsers
 
 
 class TestRs274xParsers(unittest.TestCase):
 
     def test_aperture_ident(self) -> None:
-        Rs274xParsers.aperture_ident.parse('D01').or_die()
-        Rs274xParsers.aperture_ident.parse('D11').or_die()
-        Rs274xParsers.aperture_ident.parse('D99').or_die()
+        assert 1 == Rs274xParsers.aperture_ident.parse('D01').or_die()
+        assert 11 == Rs274xParsers.aperture_ident.parse('D11').or_die()
+        assert 99 == Rs274xParsers.aperture_ident.parse('D99').or_die()
 
     def test_name(self) -> None:
-        Rs274xParsers.name.parse('hoge').or_die()
-        Rs274xParsers.name.parse('FUGA').or_die()
-        Rs274xParsers.name.parse('Foo123').or_die()
+        assert Rs274xParsers.name.parse('hoge').or_die() == 'hoge'
+        assert Rs274xParsers.name.parse('FUGA').or_die() == 'FUGA'
+        assert Rs274xParsers.name.parse('Foo123').or_die() == 'Foo123'
 
     def test_user_name(self) -> None:
-        Rs274xParsers.user_name.parse('isseimori').or_die()
+        assert Rs274xParsers.user_name.parse('isseimori').or_die() == 'isseimori'
 
     def test_string(self) -> None:
-        Rs274xParsers.string.parse('qwertyuiopasdfghjkl').or_die()
+        assert Rs274xParsers.string.parse('qwertyuiopasdfghjkl').or_die() == 'qwertyuiopasdfghjkl'
 
     def test_field(self) -> None:
-        Rs274xParsers.field.parse('qwertyuiopasdfghjkl').or_die()
+        assert Rs274xParsers.field.parse('qwertyuiopasdfghjkl').or_die() == 'qwertyuiopasdfghjkl'
 
     def test_addsub_operator(self) -> None:
-        Rs274xParsers.addsub_operator.parse('+').or_die()
-        Rs274xParsers.addsub_operator.parse('-').or_die()
+        assert Rs274xParsers.addsub_operator.parse('+').or_die() == '+'
+        assert Rs274xParsers.addsub_operator.parse('-').or_die() == '-'
 
     def test_muldiv_operator(self) -> None:
-        Rs274xParsers.muldiv_operator.parse('x').or_die()
-        Rs274xParsers.muldiv_operator.parse('/').or_die()
+        assert Rs274xParsers.muldiv_operator.parse('x').or_die() == 'x'
+        assert Rs274xParsers.muldiv_operator.parse('/').or_die() == '/'
 
     def test_unsigned_integer(self) -> None:
-        Rs274xParsers.unsigned_integer.parse('012').or_die()
+        assert Rs274xParsers.unsigned_integer.parse('012').or_die() == 12
 
     def test_positive_integer(self) -> None:
-        Rs274xParsers.positive_integer.parse('1').or_die()
+        assert Rs274xParsers.positive_integer.parse('1').or_die() == 1
 
     def test_integer(self) -> None:
-        Rs274xParsers.integer.parse('0').or_die()
-        Rs274xParsers.integer.parse('+1').or_die()
-        Rs274xParsers.integer.parse('-1').or_die()
+        assert Rs274xParsers.integer.parse('0').or_die() == '0'
+        assert Rs274xParsers.integer.parse('+1').or_die() == '+1'
+        assert Rs274xParsers.integer.parse('-1').or_die() == '-1'
 
     def test_unsigned_decimal(self) -> None:
         pass
 
     def test_decimal(self) -> None:
-        pass
+        assert Rs274xParsers.decimal.parse('123.4').or_die() == 123.4
+        assert Rs274xParsers.decimal.parse('.5').or_die() == .5
 
     def test_expression(self) -> None:
-        Rs274xParsers.expression.parse('1+1').or_die()
+        assert Rs274xParsers.expression.parse('1+1').or_die() == AMAdd(AMFloat(1.0), AMFloat(1.0))
+        assert Rs274xParsers.expression.parse('1+1+2').or_die() == AMAdd(AMAdd(AMFloat(1.0), AMFloat(1.0)), AMFloat(2.0))
 
     def test_macro_variable(self) -> None:
-        pass
+        assert Rs274xParsers.expression.parse('$1').or_die() == AMVar(1)
 
     def test_factor(self) -> None:
         pass
@@ -95,17 +98,17 @@ class TestRs274xParsers(unittest.TestCase):
         pass
 
     def test_G36(self) -> None:
-        Rs274xParsers.G36.parse('G36*').or_die()
+        assert G36Command() == Rs274xParsers.G36.parse('G36*').or_die()
 
     def test_G37(self) -> None:
-        Rs274xParsers.G37.parse('G37*').or_die()
+        assert G37Command() == Rs274xParsers.G37.parse('G37*').or_die()
 
     def test_D01(self) -> None:
         Rs274xParsers.D01.parse('X250000Y155000D01*').or_die()
         Rs274xParsers.D01.parse('X200Y200I50J50D01*').or_die()
 
     def test_D02(self) -> None:
-        assert Rs274xParsers.D02.parse('X2152000Y1215000D02*').or_die() == D02Command(2152000, 1215000)
+        assert Rs274xParsers.D02.parse('X2152000Y1215000D02*').or_die() == D02Command('2152000', '1215000')
 
     def test_contour(self) -> None:
         Rs274xParsers.contour.parse('''X200Y300000D02*
@@ -225,26 +228,26 @@ class TestRs274xParsers(unittest.TestCase):
         Rs274xParsers.LS.parse('%LS1.5*%').or_die()
 
     def test_Dnn(self) -> None:
-        Rs274xParsers.Dnn.parse('D10*')
+        assert Rs274xParsers.Dnn.parse('D10*').or_die() == DnnCommand(10)
 
     def test_G04(self) -> None:
         Rs274xParsers.G04.parse('G04 This is a comment*').or_die()
         Rs274xParsers.G04.parse('G04 The space characters as well as ‘,’ and ‘;’ are allowed here.*').or_die()
 
     def test_M02(self) -> None:
-        Rs274xParsers.M02.parse('M02*').or_die()
+        assert M02Command() == Rs274xParsers.M02.parse('M02*').or_die()
 
     def test_G01(self) -> None:
-        Rs274xParsers.G01.parse('G01*').or_die()
+        assert Rs274xParsers.G01.parse('G01*').or_die() == G01Command()
 
     def test_G02(self) -> None:
-        Rs274xParsers.G02.parse('G02*').or_die()
+        assert Rs274xParsers.G02.parse('G02*').or_die() == G02Command()
 
     def test_G03(self) -> None:
-        Rs274xParsers.G03.parse('G03*').or_die()
+        assert Rs274xParsers.G03.parse('G03*').or_die() == G03Command()
 
     def test_G75(self) -> None:
-        Rs274xParsers.G75.parse('G75*').or_die()
+        assert Rs274xParsers.G75.parse('G75*').or_die() == G75Command()
 
     def test_D03(self) -> None:
         Rs274xParsers.D03.parse('X1215000Y2152000D03*').or_die()
@@ -258,6 +261,33 @@ class TestRs274xParsers(unittest.TestCase):
     def test_MO(self) -> None:
         Rs274xParsers.MO.parse('%MOMM*%').or_die()
         Rs274xParsers.MO.parse('%MOIN*%').or_die()
+
+    def test_AS(self) -> None:
+        pass
+
+    def test_IN(self) -> None:
+        pass
+
+    def test_IP(self) -> None:
+        pass
+
+    def test_IR(self) -> None:
+        pass
+
+    def test_LN(self) -> None:
+        pass
+
+    def test_MI(self) -> None:
+        pass
+
+    def test_OF(self) -> None:
+        pass
+
+    def test_SF(self) -> None:
+        pass
+
+    def test_G74(self) -> None:
+        pass
 
     def test_attribute_command(self) -> None:
         pass

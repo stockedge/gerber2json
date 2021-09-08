@@ -1,8 +1,8 @@
 from primitive_shape import Shape
 from raw_command import *
 
-
 T = TypeVar('T')
+
 
 class CommandVisitor:
     @abstractmethod
@@ -83,12 +83,17 @@ class CommandVisitor:
     @abstractmethod
     def visit_m02(self, command: 'M02Command') -> T: pass
 
+    @abstractmethod
+    def visit_g74(self, command: 'G74Command') -> T:
+        pass
+
 
 @attr.s
 class CommandConverter(CommandVisitor):
     metric: 'Metric' = attr.ib()
     aperture_dictionary: dict[int, 'ADCommand'] = attr.ib(validator=attr.validators.instance_of(dict[int, 'ADCommand']))
-    aperture_macro_definition: dict[str, 'AMCommand'] = attr.ib(validator=attr.validators.instance_of(dict[int, 'AMCommand']))
+    aperture_macro_definition: dict[str, 'AMCommand'] = attr.ib(
+        validator=attr.validators.instance_of(dict[int, 'AMCommand']))
 
     def visit_g04(self, command: 'G04Command') -> Shape:
         pass
@@ -166,4 +171,7 @@ class CommandConverter(CommandVisitor):
         pass
 
     def visit_m02(self, command: 'M02Command') -> Shape:
+        pass
+
+    def visit_g74(self, command: 'G74Command') -> T:
         pass
