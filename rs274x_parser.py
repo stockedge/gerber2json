@@ -216,16 +216,3 @@ class Rs274xParsers(TextParsers):
     statements = rep1(statement)
 
 
-# import timeit
-#
-# with open(r'extract/202106220150M/l1.phot') as f:
-#     s = f.read()
-#     def test():
-#         return Rs274xParsers.statements.parse(s).or_die()
-#
-# try:
-#     type(Rs274xParsers.statements.parse(test()).or_die())
-# except Exception as e:
-#     print(e)
-#
-# print(timeit.timeit("test()", number=10, globals=locals()))
